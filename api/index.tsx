@@ -29,8 +29,8 @@ export const app = new Frog({
   }),
 )
 
-function Content(weeklyAllowance:string, remainingAllowance:string, masks:string, rank:string) {
-  if (typeof weeklyAllowance == "undefined") {
+function Content(build_score:number, build_budget:number, rank:string, tokens_committed_round_1:string, talent_builder_score:string) {
+  if (typeof build_score == "undefined") {
     return <Row paddingLeft="64" height="5/7"> 
             <Columns gap="8" grow> 
               <Column width="1/7" />
@@ -50,12 +50,12 @@ function Content(weeklyAllowance:string, remainingAllowance:string, masks:string
                 <Row height="1/7" > <Heading size="20"> Tipping Balance </Heading> </Row>
                 <Row paddingLeft="12" height="2/7" > 
                   <Columns gap="8" grow> 
-                    <Column alignVertical='bottom' width="3/7"> <Text>- Weekly Budget: </Text> </Column>
-                    <Column width="4/7"> <Text align='right' color="blue" weight="900" size="20"> { weeklyAllowance } </Text> </Column>
+                    <Column alignVertical='bottom' width="3/7"> <Text>- Budget: </Text> </Column>
+                    <Column width="4/7"> <Text align='right' color="blue" weight="900" size="20"> { build_budget } </Text> </Column>
                   </Columns>
                   <Columns gap="8" grow> 
                     <Column alignVertical='bottom' width="3/7"> <Text>- BUILD Points: </Text> </Column>
-                    <Column width="4/7"> <Text color="blue" align='right'>{ remainingAllowance }</Text> </Column>
+                    <Column width="4/7"> <Text color="blue" align='right'>{ build_score }</Text> </Column>
                   </Columns>
                 </Row>
                 <Divider />
@@ -63,15 +63,15 @@ function Content(weeklyAllowance:string, remainingAllowance:string, masks:string
                 <Row paddingLeft="12" height="3/7" > 
                   <Columns gap="8" grow> 
                     <Column alignVertical='bottom' width="3/7"> <Text>- Builder Score: </Text> </Column>
-                    <Column width="4/7"> <Text color="blue" align='right' weight="900" size="20"> { rank } </Text> </Column>
+                    <Column width="4/7"> <Text color="blue" align='right' weight="900" size="20"> { talent_builder_score } </Text> </Column>
                   </Columns>
                   <Columns gap="8" grow> 
                     <Column alignVertical='bottom' width="5/7"> <Text>- Build Committed: </Text> </Column>
-                    <Column width="2/7"> <Text color="blue" align='right'>{ masks }</Text> </Column>
+                    <Column width="2/7"> <Text color="blue" align='right'>{ tokens_committed_round_1 }</Text> </Column>
                   </Columns>
                   <Columns gap="8" grow> 
                     <Column alignVertical='bottom' width="5/7"> <Text>- Rank: </Text> </Column>
-                    <Column width="2/7"> <Text color="blue" align='right'>{ masks }</Text> </Column>
+                    <Column width="2/7"> <Text color="blue" align='right'>{ rank }</Text> </Column>
                   </Columns>
                 </Row>
               </Rows>
@@ -99,14 +99,19 @@ app.frame('/', async (c) => {
   const { frameData } = c
   const { fid } = frameData || {} 
 
-  var { displayName, username, pfpUrl } = c.var.interactor || {};
+  var { displayName, username, pfpUrl, verifiedAddresses } = c.var.interactor || {};
+  var { ethAddresses } = verifiedAddresses || {}
 
-  var masksBalance = await fetch("https://app.masks.wtf/api/balance?fid="+fid ,{ method:"GET" });
-  var { weeklyAllowance, remainingAllowance, masks } = JSON.parse(await masksBalance.text()) || {};
+  if (typeof ethAddresses != 'undefined') {
+    var buildStarts = await fetch("https://build.top/api/stats?wallet="+ethAddresses ,{ method:"GET" });
+    var { build_score, build_budget, rank, tokens_committed_round_1, talent_builder_score } = JSON.parse(await buildStarts.text()) || {};  
 
-  var rankBalance = await fetch("https://app.masks.wtf/api/rank?fid="+fid ,{ method:"GET" });
-  var { rank } = JSON.parse(await rankBalance.text()) || {};
-  
+    build_budget = parseInt(build_budget || 0);
+    build_score = parseInt(build_score || 0);
+  } else {
+    var { build_score, build_budget, rank, tokens_committed_round_1, talent_builder_score } = verifiedAddresses || {};
+  }
+
   const ids = MakeID(7);
   const uriTip = "https://warpcast.com/dangs.eth/0x96d39fed";
   const uriShare = encodeURI(`https://warpcast.com/~/compose?text=Check your $BUILD Stats. Frame by @dangs.eth &embeds[]=${SITE_URL}api/${fid}/dangs${ids}`);
@@ -128,11 +133,11 @@ app.frame('/', async (c) => {
               </Column>
               <Column alignVertical='center' width="6/7"> 
                 <Heading size="20"> {displayName} </Heading>
-                <Text color="gray" size="14">@{username} { typeof weeklyAllowance != "undefined" ? `- Rank #${rank}` : `` }</Text>
+                <Text color="gray" size="14">@{username} { typeof rank != "undefined" ? `- Rank #${rank}` : `` }</Text>
               </Column>
             </Columns> : "" }
           </Row>
-          { Content(weeklyAllowance, remainingAllowance, masks, rank) }
+          { Content(build_score, build_budget, rank, tokens_committed_round_1, talent_builder_score) }
           <Row height="1/7" alignVertical='bottom'> <Text size="12" align='right'>frame design by @dangs.eth</Text> </Row>
         </Rows>
       </Box>
@@ -157,12 +162,20 @@ app.frame('/:fid/:secret', async (c) => {
   var { displayName, username, pfp } = result.user || {};
   var { url } = pfp || {}
 
-  var masksBalance = await fetch("https://app.masks.wtf/api/balance?fid="+fid ,{ method:"GET" });
-  var { weeklyAllowance, remainingAllowance, masks } = JSON.parse(await masksBalance.text()) || {};
+  var verifications = await fetch("https://client.warpcast.com/v2/verifications?fid="+fid+"&limit=15" ,{ method:"GET" });
+  var { result } = JSON.parse(await verifications.text()) || {};
+  var ethAddresses = result.verifications[0].address || "";
 
-  var rankBalance = await fetch("https://app.masks.wtf/api/rank?fid="+fid ,{ method:"GET" });
-  var { rank } = JSON.parse(await rankBalance.text()) || {};
-  
+  if (typeof ethAddresses != 'undefined') {
+    var buildStarts = await fetch("https://build.top/api/stats?wallet="+ethAddresses ,{ method:"GET" });
+    var { build_score, build_budget, rank, tokens_committed_round_1, talent_builder_score } = JSON.parse(await buildStarts.text()) || {};  
+
+    build_budget = parseInt(build_budget || 0);
+    build_score = parseInt(build_score || 0);
+  } else {
+    var { build_score, build_budget, rank, tokens_committed_round_1, talent_builder_score } = result || {};
+  }
+
   const ids = MakeID(7);
   const uriTip = "https://warpcast.com/dangs.eth/0x96d39fed";
   const uriShare = encodeURI(`https://warpcast.com/~/compose?text=Check your $BUILD Stats. Frame by @dangs.eth &embeds[]=${SITE_URL}api/${fid}/dangs${ids}`);
@@ -174,21 +187,20 @@ app.frame('/:fid/:secret', async (c) => {
     },
     image: (
       <Box height="100%" width="100%" backgroundSize="816px 426px" backgroundRepeat='no-repeat' backgroundImage={`url("${SITE_URL}/bg.png")`}> 
-
         <Rows paddingTop="12" paddingRight="12" paddingLeft="12" paddingBottom="0" gap="8" grow>
           <Row height="2/7" >
             { typeof displayName != "undefined" ? 
             <Columns gap="8" grow> 
               <Column width="1/7"> 
-                <Image width="72" height="100%"borderRadius="192" objectFit='cover' src={url} />
+                <Image width="72" height="100%" borderRadius="192" objectFit='cover' src={url} />
               </Column>
               <Column alignVertical='center' width="6/7"> 
                 <Heading size="20"> {displayName} </Heading>
-                <Text color="gray" size="14">@{username} { typeof weeklyAllowance != "undefined" ? `- Rank #${rank}` : `` }</Text>
+                <Text color="gray" size="14">@{username} { typeof rank != "undefined" ? `- Rank #${rank}` : `` }</Text>
               </Column>
             </Columns> : "" }
           </Row>
-          { Content(weeklyAllowance, remainingAllowance, masks, rank) }
+          { Content(build_score, build_budget, rank, tokens_committed_round_1, talent_builder_score) }
           <Row height="1/7" alignVertical='bottom'> <Text size="12" align='right'>frame design by @dangs.eth</Text> </Row>
         </Rows>
       </Box>
