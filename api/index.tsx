@@ -50,11 +50,11 @@ function Content(weeklyAllowance:string, remainingAllowance:string, masks:string
                 <Row height="1/7" > <Heading size="20"> Tipping Balance </Heading> </Row>
                 <Row paddingLeft="12" height="2/7" > 
                   <Columns gap="8" grow> 
-                    <Column alignVertical='bottom' width="3/7"> <Text>- Allowance: </Text> </Column>
+                    <Column alignVertical='bottom' width="3/7"> <Text>- Weekly Budget: </Text> </Column>
                     <Column width="4/7"> <Text align='right' color="blue" weight="900" size="20"> { weeklyAllowance } </Text> </Column>
                   </Columns>
                   <Columns gap="8" grow> 
-                    <Column alignVertical='bottom' width="3/7"> <Text>- Remaining: </Text> </Column>
+                    <Column alignVertical='bottom' width="3/7"> <Text>- BUILD Points: </Text> </Column>
                     <Column width="4/7"> <Text color="blue" align='right'>{ remainingAllowance }</Text> </Column>
                   </Columns>
                 </Row>
@@ -62,15 +62,15 @@ function Content(weeklyAllowance:string, remainingAllowance:string, masks:string
                 <Row height="1/7" > <Heading size="20"> Other Information </Heading> </Row>
                 <Row paddingLeft="12" height="3/7" > 
                   <Columns gap="8" grow> 
-                    <Column alignVertical='bottom' width="3/7"> <Text>- Rank: </Text> </Column>
+                    <Column alignVertical='bottom' width="3/7"> <Text>- Builder Score: </Text> </Column>
                     <Column width="4/7"> <Text color="blue" align='right' weight="900" size="20"> { rank } </Text> </Column>
                   </Columns>
                   <Columns gap="8" grow> 
-                    <Column alignVertical='bottom' width="5/7"> <Text>- Balance: </Text> </Column>
+                    <Column alignVertical='bottom' width="5/7"> <Text>- Build Committed: </Text> </Column>
                     <Column width="2/7"> <Text color="blue" align='right'>{ masks }</Text> </Column>
                   </Columns>
                   <Columns gap="8" grow> 
-                    <Column alignVertical='bottom' width="5/7"> <Text>- Balance: </Text> </Column>
+                    <Column alignVertical='bottom' width="5/7"> <Text>- Rank: </Text> </Column>
                     <Column width="2/7"> <Text color="blue" align='right'>{ masks }</Text> </Column>
                   </Columns>
                 </Row>
@@ -124,7 +124,7 @@ app.frame('/', async (c) => {
             { typeof displayName != "undefined" ? 
             <Columns gap="8" grow> 
               <Column width="1/7"> 
-                <Image width="72" height="100%"borderRadius="192" objectFit='cover' src={pfpUrl || ""} />
+                <Image width="72" height="100%" borderRadius="192" objectFit='cover' src={pfpUrl || ""} />
               </Column>
               <Column alignVertical='center' width="6/7"> 
                 <Heading size="20"> {displayName} </Heading>
