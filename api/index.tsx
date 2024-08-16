@@ -69,6 +69,10 @@ function Content(weeklyAllowance:string, remainingAllowance:string, masks:string
                     <Column alignVertical='bottom' width="5/7"> <Text>- Balance: </Text> </Column>
                     <Column width="2/7"> <Text color="blue" align='right'>{ masks }</Text> </Column>
                   </Columns>
+                  <Columns gap="8" grow> 
+                    <Column alignVertical='bottom' width="5/7"> <Text>- Balance: </Text> </Column>
+                    <Column width="2/7"> <Text color="blue" align='right'>{ masks }</Text> </Column>
+                  </Columns>
                 </Row>
               </Rows>
             </Column>

@@ -22,6 +22,6 @@ export const {
       red: '#ff0000',
       orange: '#ffaa00',
       gray: "rgb(149 155 157)",
-      blue: 'rgb(0 199 255)'
+      blue: '#0142F5'
     }
 })
